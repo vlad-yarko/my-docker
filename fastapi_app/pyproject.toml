@@ -3,10 +3,8 @@ name = "my-docker"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.116.2",
-    "flask>=3.1.2",
-    "gunicorn>=23.0.0",
-    "uvicorn>=0.35.0",
+    "uvicorn>=0.35.0"
 ]

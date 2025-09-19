@@ -1,0 +1,20 @@
+FROM python:3.11-slim   AS base
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+LABEL maintainer="vladyslav-yarko"
+LABEL org.opencontainers.image.source="https://github.com/vlad-yarko/my-docker"
+
+WORKDIR /app
+
+COPY pyproject.toml .
+
+RUN uv sync
+
+RUN 
+
+COPY . . 
+
+EXPOSE 5000
+
+CMD [ "uv", "run", "gunicorn", "main:app", "--bind", "0.0.0.0:5000" ]

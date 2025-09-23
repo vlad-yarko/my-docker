@@ -2,7 +2,8 @@ ARG NODE_VERSION=22.12
 ARG NGINX_VERSION=1.22
 
 
-FROM node:${NODE_VERSION}-alpine AS build
+###
+FROM node:${NODE_VERSION}-alpine AS base
 
 LABEL maintainer="vladyslav-yarko"
 LABEL org.opencontainers.image.source="https://github.com/vlad-yarko/my-docker"
@@ -11,18 +12,15 @@ WORKDIR /app
 
 COPY --chown=node package*.json .
 
+
+###
+FROM base AS dev
+
 RUN --mount=type=cache,target=/frontend/.npm \
     npm set cache /frontend/.npm && \
     npm ci
 
 COPY --chown=node . .
-
-
-# Bad approach here
-RUN npm run build
-
-
-FROM build AS dev
 
 EXPOSE 5173
 
@@ -31,7 +29,19 @@ CMD [ "run", "dev" ]
 
 
 ###
-FROM nginx:${NGINX_VERSION}-alpine
+FROM base AS build
+
+RUN --mount=type=cache,target=/frontend/.npm \
+    npm set cache /frontend/.npm && \
+    npm ci
+
+COPY --chown=node . .
+
+RUN npm run build
+
+
+###
+FROM nginx:${NGINX_VERSION}-alpine AS prod
 
 # From build state
 

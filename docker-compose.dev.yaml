@@ -18,37 +18,26 @@ services:
       - fastapi-app
       - flask-app
     volumes:
-      - type: bind
-        source: ./react-app/package.json
-        target: /app/package.json
-      - type: volume
-        target: /app/node_modules
+      # - type: bind
+      #   source: ./react-app/package.json
+      #   target: /app/package.json
       - type: bind
         source: ./react-app
         target: /app
-      - type: bind
-        source: ./react-app/nginx.conf
-        target: /etc/nginx/nginx.conf
-      - type: bind
-        source: ./react-app/dist
-        target: /usr/share/nginx/html
-      - type: bind
-        source: ./react-app/sites
-        target: /app/sites
-    userns_mode: "remap" # With this keys, ports <= 1024 are not available because of permissions
-    cap_drop:
-      - ALL
-    cap_add:
-      - NET_BIND_SERVICE
-      - CHOWN
-      - DAC_OVERRIDE
-      - SETGID
-      - SETUID
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 512M
+      - type: volume
+        target: /app/node_modules
+      # - type: bind
+      #   source: ./react-app/nginx.conf
+      #   target: /etc/nginx/nginx.conf
+      # - type: bind
+      #   source: ./react-app/dist
+      #   target: /usr/share/nginx/html
+      # - type: bind
+      #   source: ./react-app/sites
+      #   target: /app/sites
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
 
   fastapi-app:
     build:
@@ -63,22 +52,14 @@ services:
     networks:
       - fastapi
     volumes:
-      - type: volume
-        target: /app/.venv
       - type: bind
         source: ./fastapi_app/pyproject.toml
         target: /app/pyproject.toml
       - type: bind
         source: ./fastapi_app
         target: /app
-    userns_mode: "remap"
-    cap_drop:
-      - ALL
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 512M
+      - type: volume  
+        target: /app/.venv
 
   flask-app:
     build:
@@ -101,14 +82,6 @@ services:
       - type: bind
         source: ./flask_app
         target: /app
-    userns_mode: "remap"
-    cap_drop:
-      - ALL
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 512M
 
   
 networks:

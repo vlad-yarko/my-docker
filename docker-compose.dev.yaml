@@ -8,15 +8,33 @@ services:
       args:
         NODE_VERSION: "22.12"
         NGINX_VERSION: "1.22"
+      target: dev
     container_name: react-app
     ports:
-      - "80:80"
-      - "443:443"
+      - "5173:5173"
     networks:
       - react
     depends_on:
       - fastapi-app
       - flask-app
+    volumes:
+      - type: bind
+        source: ./react-app/package.json
+        target: /app/package.json
+      - type: volume
+        target: /app/node_modules
+      - type: bind
+        source: ./react-app
+        target: /app
+      - type: bind
+        source: ./react-app/nginx.conf
+        target: /etc/nginx/nginx.conf
+      - type: bind
+        source: ./react-app/dist
+        target: /usr/share/nginx/html
+      - type: bind
+        source: ./react-app/sites
+        target: /app/sites
     userns_mode: "remap" # With this keys, ports <= 1024 are not available because of permissions
     cap_drop:
       - ALL
@@ -38,11 +56,21 @@ services:
       dockerfile: Dockerfile.fastapi
       args:
         PYTHON_VERSION: "3.11"
+      target: dev
     container_name: fastapi-app
     ports:
       - "8000:8000"
     networks:
       - fastapi
+    volumes:
+      - type: volume
+        target: /app/.venv
+      - type: bind
+        source: ./fastapi_app/pyproject.toml
+        target: /app/pyproject.toml
+      - type: bind
+        source: ./fastapi_app
+        target: /app
     userns_mode: "remap"
     cap_drop:
       - ALL
@@ -58,11 +86,21 @@ services:
       dockerfile: Dockerfile.flask
       args:
         PYTHON_VERSION: "3.11"
+      target: dev
     container_name: flask-app
     ports:
       - "5000:5000"
     networks:
       - flask
+    volumes:
+      - type: volume
+        target: /app/.venv
+      - type: bind
+        source: ./flask_app/pyproject.toml
+        target: /app/pyproject.toml
+      - type: bind
+        source: ./flask_app
+        target: /app
     userns_mode: "remap"
     cap_drop:
       - ALL

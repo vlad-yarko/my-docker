@@ -11,18 +11,14 @@ WORKDIR /app
 
 COPY --chown=node package*.json .
 
+
+FROM build AS dev
+
 RUN --mount=type=cache,target=/frontend/.npm \
     npm set cache /frontend/.npm && \
     npm ci
 
 COPY --chown=node . .
-
-
-# Bad approach here
-RUN npm run build
-
-
-FROM build AS dev
 
 EXPOSE 5173
 
@@ -30,16 +26,28 @@ ENTRYPOINT [ "npm" ]
 CMD [ "run", "dev" ]
 
 
+FROM build AS prod
+
+RUN --mount=type=cache,target=/frontend/.npm \
+    npm set cache /frontend/.npm && \
+    npm ci
+
+COPY --chown=node . .
+
+RUN npm run build
+
+
 ###
 FROM nginx:${NGINX_VERSION}-alpine
 
 # From build state
+# COPY --chown=nginx --from=build app/nginx.conf /etc/nginx/nginx.conf
 
-COPY --chown=nginx --from=build app/nginx.conf /etc/nginx/nginx.conf
+# COPY --chown=nginx --from=build app/dist/ /usr/share/nginx/html
 
-COPY --chown=nginx --from=build app/dist/ /usr/share/nginx/html
+# COPY --chown=nginx --from=build app/sites/ /app/sites
 
-COPY --chown=nginx --from=build app/sites/ /app/sites
+
 
 EXPOSE 80
 EXPOSE 443
